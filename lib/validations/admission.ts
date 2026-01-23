@@ -5,7 +5,10 @@ export const admissionSchema = z.object({
   class_name: z.string().min(1, "Please select a class"),
   student_name: z.string().min(3, "Name must be at least 3 characters"),
   gender: z.enum(["male", "female"]),
-  dob: z.date({ required_error: "Date of birth is required" }),
+  dob: z.coerce.date({ 
+    required_error: "Date of birth is required",
+    invalid_type_error: "That's not a valid date!",
+  }),
   stay_type: z.enum(["home", "boarding"]),
 
   // Guardian Information
