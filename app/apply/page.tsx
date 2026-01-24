@@ -31,10 +31,10 @@ export default function AdmissionPage() {
     defaultValues: {
       class_name: "",
       student_name: "",
-      gender: "male",
+      gender: "",
       // We cast this to any so TS doesn't complain about it being missing or null
       dob: new Date() as any, 
-      stay_type: "home",
+      stay_type: "",
       father_name: "",
       mother_name: "",
       guardian_name: "",
