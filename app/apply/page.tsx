@@ -28,14 +28,25 @@ export default function AdmissionPage() {
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionSchema),
     defaultValues: {
+      class_name: "",
       student_name: "",
+      gender: "male",
+      dob: undefined, // TypeScript will accept undefined here because of the resolver
+      stay_type: "home",
+      father_name: "",
+      mother_name: "",
+      guardian_name: "",
+      guardian_occupation: "",
+      guardian_phone: "",
       guardian_email: "",
+      upozilla: "",
+      union_pourosova: "",
+      ward: "",
+      village_moholla: "",
     },
   });
 
-  // Fetch dynamic classes (Mocking the API call for now)
   useEffect(() => {
-    // Replace with: fetch("your-laravel-api/classes")
     setClasses([
       { id: "1", name: "Class 6" },
       { id: "2", name: "Class 7" },
@@ -48,152 +59,182 @@ export default function AdmissionPage() {
     try {
       const formData = new FormData();
       
-      // Append all text/enum fields
       Object.entries(data).forEach(([key, value]) => {
         if (!(value instanceof FileList)) {
           if (value instanceof Date) {
-            formData.append(key, value.toISOString());
-          } else {
+            formData.append(key, value.toISOString().split('T')[0]);
+          } else if (value !== undefined && value !== null) {
             formData.append(key, value as string);
           }
         }
       });
 
-      // Append Files
-      formData.append("student_photo", data.student_photo[0]);
-      formData.append("birth_certificate", data.birth_certificate[0]);
+      if (data.student_photo?.[0]) {
+        formData.append("student_photo", data.student_photo[0]);
+      }
+      if (data.birth_certificate?.[0]) {
+        formData.append("birth_certificate", data.birth_certificate[0]);
+      }
 
-      // Example API Call
-      // const res = await fetch("/api/admission", { method: "POST", body: formData });
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      toast.success("Application submitted! Redirecting...");
+      toast.success("Application submitted successfully!");
       router.push("/apply/success");
     } catch (error) {
-      toast.error("Something went wrong. Please check your connection.");
+      toast.error("Submission failed. Please check your data.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-1">
-            <div className="container mx-auto max-w-4xl py-10">
-              <div className="mb-8 text-center">
-                <h1 className="text-3xl font-bold tracking-tight">Admission Form</h1>
-                <p className="text-muted-foreground">Please fill in all the details accurately.</p>
-              </div>
+    <div className="min-h-screen flex flex-col bg-slate-50/50">
+      <Navbar />
+      <main className="flex-1">
+        <div className="container mx-auto max-w-4xl py-10 px-4">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold tracking-tight">Admission Form</h1>
+            <p className="text-muted-foreground">Please fill in all the details accurately.</p>
+          </div>
 
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              
+              {/* 1. Student Information */}
+              <Card>
+                <CardHeader><CardTitle>Student Information</CardTitle></CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="student_name" render={({ field }) => (
+                    <FormItem><FormLabel>Student Name</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
                   
-                  {/* 1. Student Information */}
-                  <Card>
-                    <CardHeader><CardTitle>Student Information</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField control={form.control} name="student_name" render={({ field }) => (
-                        <FormItem><FormLabel>Student Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      
-                      <FormField control={form.control} name="class_name" render={({ field }) => (
-                        <FormItem><FormLabel>Applying Class</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger></FormControl>
-                            <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
-                          </Select>
-                        <FormMessage /></FormItem>
-                      )} />
+                  <FormField control={form.control} name="class_name" render={({ field }) => (
+                    <FormItem><FormLabel>Applying Class</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger></FormControl>
+                        <SelectContent>{classes.map(c => <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    <FormMessage /></FormItem>
+                  )} />
 
-                      <FormField control={form.control} name="gender" render={({ field }) => (
-                        <FormItem><FormLabel>Gender</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                              <SelectItem value="male">Male</SelectItem>
-                              <SelectItem value="female">Female</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        <FormMessage /></FormItem>
-                      )} />
+                  <FormField control={form.control} name="gender" render={({ field }) => (
+                    <FormItem><FormLabel>Gender</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    <FormMessage /></FormItem>
+                  )} />
 
-                      <FormField control={form.control} name="dob" render={({ field }) => (
-                        <FormItem className="flex flex-col mt-2">
-                          <FormLabel>Date of Birth</FormLabel>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <FormControl>
-                                <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                              </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date()} initialFocus />
-                            </PopoverContent>
-                          </Popover>
-                          <FormMessage />
-                        </FormItem>
-                      )} />
+                  <FormField control={form.control} name="dob" render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel className="mb-1">Date of Birth</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button variant="outline" className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar 
+                            mode="single" 
+                            selected={field.value} 
+                            onSelect={field.onChange} 
+                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")} 
+                            initialFocus 
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
 
-                      <FormField control={form.control} name="stay_type" render={({ field }) => (
-                        <FormItem><FormLabel>Stay Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
-                            <SelectContent>
-                              <SelectItem value="home">Home (Day Scholar)</SelectItem>
-                              <SelectItem value="boarding">Boarding (Residential)</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        <FormMessage /></FormItem>
-                      )} />
-                    </CardContent>
-                  </Card>
+                  <FormField control={form.control} name="stay_type" render={({ field }) => (
+                    <FormItem><FormLabel>Stay Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                          <SelectItem value="home">Home (Day Scholar)</SelectItem>
+                          <SelectItem value="boarding">Boarding (Residential)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    <FormMessage /></FormItem>
+                  )} />
+                </CardContent>
+              </Card>
 
-                  {/* 2. Guardian Information */}
-                  <Card>
-                    <CardHeader><CardTitle>Guardian Details</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField control={form.control} name="father_name" render={({ field }) => (
-                        <FormItem><FormLabel>Father's Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name="mother_name" render={({ field }) => (
-                        <FormItem><FormLabel>Mother's Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name="guardian_name" render={({ field }) => (
-                        <FormItem><FormLabel>Guardian Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name="guardian_phone" render={({ field }) => (
-                        <FormItem><FormLabel>Guardian Phone</FormLabel><FormControl><Input placeholder="017XXXXXXXX" {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                    </CardContent>
-                  </Card>
+              {/* 2. Guardian Information */}
+              <Card>
+                <CardHeader><CardTitle>Guardian Details</CardTitle></CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="father_name" render={({ field }) => (
+                    <FormItem><FormLabel>Father's Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="mother_name" render={({ field }) => (
+                    <FormItem><FormLabel>Mother's Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="guardian_name" render={({ field }) => (
+                    <FormItem><FormLabel>Guardian Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="guardian_occupation" render={({ field }) => (
+                    <FormItem><FormLabel>Guardian Occupation</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="guardian_phone" render={({ field }) => (
+                    <FormItem><FormLabel>Guardian Phone</FormLabel><FormControl><Input placeholder="017XXXXXXXX" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="guardian_email" render={({ field }) => (
+                    <FormItem><FormLabel>Guardian Email (Optional)</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </CardContent>
+              </Card>
 
-                  {/* 3. Address & Documents */}
-                  <Card>
-                    <CardHeader><CardTitle>Address & Documents</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField control={form.control} name="upozilla" render={({ field }) => (
-                        <FormItem><FormLabel>Upozilla</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name="student_photo" render={({ field: { value, onChange, ...field } }) => (
-                        <FormItem><FormLabel>Student Photo</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => onChange(e.target.files)} {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                      <FormField control={form.control} name="birth_certificate" render={({ field: { value, onChange, ...field } }) => (
-                        <FormItem><FormLabel>Birth Certificate (PDF/Img)</FormLabel><FormControl><Input type="file" onChange={(e) => onChange(e.target.files)} {...field} /></FormControl><FormMessage /></FormItem>
-                      )} />
-                    </CardContent>
-                  </Card>
+              {/* 3. Address Information */}
+              <Card>
+                <CardHeader><CardTitle>Detailed Address</CardTitle></CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="upozilla" render={({ field }) => (
+                    <FormItem><FormLabel>Upozilla</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="union_pourosova" render={({ field }) => (
+                    <FormItem><FormLabel>Union / Pourosova</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="ward" render={({ field }) => (
+                    <FormItem><FormLabel>Ward No.</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="village_moholla" render={({ field }) => (
+                    <FormItem><FormLabel>Village / Moholla</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </CardContent>
+              </Card>
 
-                  <Button type="submit" className="w-full h-12 text-lg" disabled={loading}>
-                    {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : "Submit Application"}
-                  </Button>
-                </form>
-              </Form>
-            </div>
-          </main>
-        <Footer />
+              {/* 4. Documents */}
+              <Card>
+                <CardHeader><CardTitle>Required Documents</CardTitle></CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField control={form.control} name="student_photo" render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem><FormLabel>Student Photo</FormLabel><FormControl><Input type="file" accept="image/*" onChange={(e) => onChange(e.target.files)} {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="birth_certificate" render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem><FormLabel>Birth Certificate</FormLabel><FormControl><Input type="file" accept=".pdf,image/*" onChange={(e) => onChange(e.target.files)} {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </CardContent>
+              </Card>
+
+              <Button type="submit" className="w-full h-12 text-lg" disabled={loading}>
+                {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</> : "Submit Application"}
+              </Button>
+            </form>
+          </Form>
+        </div>
+      </main>
+      <Footer />
     </div>
   );
 }

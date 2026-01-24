@@ -27,7 +27,7 @@ export const admissionSchema = z.object({
   ward: z.string().min(1, "Ward is required"),
   village_moholla: z.string().min(1, "Village/Moholla is required"),
 
-  // Documents (handling File objects in browser)
+  // Documents
   student_photo: z.any()
     .refine((files) => files?.length === 1, "Student photo is required"),
   birth_certificate: z.any()
