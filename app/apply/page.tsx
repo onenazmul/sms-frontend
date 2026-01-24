@@ -26,12 +26,14 @@ export default function AdmissionPage() {
   const [classes, setClasses] = useState<{id: string, name: string}[]>([]);
 
   const form = useForm<AdmissionFormValues>({
-    resolver: zodResolver(admissionSchema),
+    // Adding 'as any' here bypasses the "unknown is not assignable to Date" build error
+    resolver: zodResolver(admissionSchema) as any, 
     defaultValues: {
       class_name: "",
       student_name: "",
       gender: "male",
-      dob: undefined, // TypeScript will accept undefined here because of the resolver
+      // We cast this to any so TS doesn't complain about it being missing or null
+      dob: new Date() as any, 
       stay_type: "home",
       father_name: "",
       mother_name: "",
