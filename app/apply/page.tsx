@@ -26,13 +26,11 @@ export default function AdmissionPage() {
   const [classes, setClasses] = useState<{id: string, name: string}[]>([]);
 
   const form = useForm<AdmissionFormValues>({
-    // Adding 'as any' here bypasses the "unknown is not assignable to Date" build error
     resolver: zodResolver(admissionSchema) as any, 
     defaultValues: {
       class_name: "",
       student_name: "",
       gender: "male",
-      // We cast this to any so TS doesn't complain about it being missing or null
       dob: new Date() as any, 
       stay_type: "home",
       father_name: "",
@@ -56,40 +54,108 @@ export default function AdmissionPage() {
     ]);
   }, []);
 
-  async function onSubmit(data: AdmissionFormValues) {
-    setLoading(true);
-    try {
-      const formData = new FormData();
+  // async function onSubmit(data: AdmissionFormValues) {
+  //   setLoading(true);
+  //   try {
+      //switch to live later
+      // Inside onSubmit(data) in production:
+      //const formData = new FormData();
+
+      // 1. Loop through all form values and append to FormData
+      // Object.entries(data).forEach(([key, value]) => {
+      //   if (value instanceof FileList) {
+      //     formData.append(key, value[0]); // Attach the file
+      //   } else if (value instanceof Date) {
+      //     formData.append(key, value.toISOString().split('T')[0]); // Format date for SQL
+      //   } else {
+      //     formData.append(key, value as string);
+      //   }
+      // });
+
+      // 2. Send to Laravel
+      // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admissions`, {
+      //   method: "POST",
+      //   body: formData, // Send as FormData to handle files
+      //   headers: {
+      //     "Accept": "application/json",
+      //     // "X-Tenant": window.location.hostname (if using Multi-tenancy)
+      //   },
+      // });
+
+      // const result = await response.json();
+
+      // if (response.ok) {
+      //   // Store the REAL credentials returned by Laravel
+      //   localStorage.setItem("new_account", JSON.stringify({
+      //     user: result.student_id,
+      //     pass: result.temporary_password
+      //   }));
+      //   router.push("/apply/success");
+      // } else {
+      //   throw new Error(result.message || "Failed to submit");
+      // }
+      //switch to live later end
+
+      // 1. MOCK DATA GENERATION (Since API is not ready)
+  //     const mockStudentId = `STU-${Math.floor(100000 + Math.random() * 900000)}`;
+  //     const mockPassword = Math.random().toString(36).slice(-8).toUpperCase();
+
+  //     // 2. SAVE TO LOCALSTORAGE
+  //     localStorage.setItem("new_account", JSON.stringify({
+  //       user: mockStudentId,
+  //       pass: mockPassword
+  //     }));
+
+  //     // 3. SIMULATE NETWORK DELAY
+  //     await new Promise(resolve => setTimeout(resolve, 2000));
       
-      Object.entries(data).forEach(([key, value]) => {
-        if (!(value instanceof FileList)) {
-          if (value instanceof Date) {
-            formData.append(key, value.toISOString().split('T')[0]);
-          } else if (value !== undefined && value !== null) {
-            formData.append(key, value as string);
+  //     toast.success("Application submitted successfully!");
+  //     router.push("/apply/success");
+  //   } catch (error) {
+  //     toast.error("Submission failed. Please check your data.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }
+
+
+      async function onSubmit(data: AdmissionFormValues) {
+      setLoading(true);
+      try {
+        // 1. Generate Mock Credentials
+        const mockStudentId = `STU-${Math.floor(100000 + Math.random() * 900000)}`;
+        const mockPassword = Math.random().toString(36).slice(-8).toUpperCase();
+
+        // 2. Prepare Data for LocalStorage (converting non-serializable fields)
+        const submissionData = {
+          ...data,
+          user: mockStudentId,
+          pass: mockPassword,
+          //dob: data.dob.toISOString(), // Convert Date to string
+          dob: data.dob instanceof Date ? data.dob.toISOString() : new Date().toISOString(),
+          student_photo: data.student_photo?.[0] ? URL.createObjectURL(data.student_photo[0]) : null, // Temporary preview URL
+          payment: {
+            amount: "500.00",
+            date: new Date().toISOString(),
+            trx_id: "TRX-" + Math.random().toString(36).toUpperCase().substring(2, 10),
+            method: "bKash Online"
           }
-        }
-      });
+        };
 
-      if (data.student_photo?.[0]) {
-        formData.append("student_photo", data.student_photo[0]);
-      }
-      if (data.birth_certificate?.[0]) {
-        formData.append("birth_certificate", data.birth_certificate[0]);
-      }
+        // 3. Save to LocalStorage
+        localStorage.setItem("new_account", JSON.stringify(submissionData));
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      toast.success("Application submitted successfully!");
-      router.push("/apply/success");
-    } catch (error) {
-      toast.error("Submission failed. Please check your data.");
-    } finally {
-      setLoading(false);
+        // 4. Simulate Network Delay
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        toast.success("Application submitted successfully!");
+        router.push("/apply/success");
+      } catch (error) {
+        toast.error("Submission failed. Please check your data.");
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/50">
       <Navbar />
@@ -102,7 +168,6 @@ export default function AdmissionPage() {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              
               {/* 1. Student Information */}
               <Card>
                 <CardHeader><CardTitle>Student Information</CardTitle></CardHeader>
@@ -110,7 +175,6 @@ export default function AdmissionPage() {
                   <FormField control={form.control} name="student_name" render={({ field }) => (
                     <FormItem><FormLabel>Student Name</FormLabel><FormControl><Input placeholder="Full Name" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
-                  
                   <FormField control={form.control} name="class_name" render={({ field }) => (
                     <FormItem><FormLabel>Applying Class</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -119,7 +183,6 @@ export default function AdmissionPage() {
                       </Select>
                     <FormMessage /></FormItem>
                   )} />
-
                   <FormField control={form.control} name="gender" render={({ field }) => (
                     <FormItem><FormLabel>Gender</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -131,7 +194,6 @@ export default function AdmissionPage() {
                       </Select>
                     <FormMessage /></FormItem>
                   )} />
-
                   <FormField control={form.control} name="dob" render={({ field }) => (
                     <FormItem className="flex flex-col">
                       <FormLabel className="mb-1">Date of Birth</FormLabel>
@@ -145,19 +207,12 @@ export default function AdmissionPage() {
                           </FormControl>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar 
-                            mode="single" 
-                            selected={field.value} 
-                            onSelect={field.onChange} 
-                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")} 
-                            initialFocus 
-                          />
+                          <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
                     </FormItem>
                   )} />
-
                   <FormField control={form.control} name="stay_type" render={({ field }) => (
                     <FormItem><FormLabel>Stay Type</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
