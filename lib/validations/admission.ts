@@ -5,9 +5,12 @@ export const admissionSchema = z.object({
   class_name: z.string().min(1, "Please select a class"),
   name: z.string().min(3, "Name must be at least 3 characters"),
   gender: z.enum(["male", "female"]),
-  dob: z.preprocess((arg) => {
-  if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
-}, z.date({ required_error: "DOB is required" })),
+  dob: z.any().refine((val) => val instanceof Date && !isNaN(val.getTime()), {
+    message: "Please enter a valid date",
+  }),
+  // dob: z.preprocess((arg) => {
+  //   if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
+  // }, z.date({ required_error: "DOB is required" })),
   //dob: z.iso.date(), //z.date({ required_error: "Date of birth is required" }),
   guardian_name: z.string().min(3, "Guardian name is required"),
   guardian_phone: z.string().regex(/^01[3-9]\d{8}$/, "Invalid Bangladeshi number"),

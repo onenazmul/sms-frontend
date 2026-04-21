@@ -132,10 +132,7 @@ export default function AdmissionPage() {
                             selected={field.value} 
                             onSelect={field.onChange} 
                             disabled={(date) => date > new Date() || date < new Date("1990-01-01")} 
-                            captionLayout="dropdown-buttons"
-                            fromYear={2000}
-                            toYear={2026}
-                            initialFocus
+                            captionLayout="dropdown"
                           />
                         </PopoverContent>
                       </Popover>
