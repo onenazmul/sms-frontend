@@ -24,22 +24,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useAdmissions } from "@/hooks/useAdmissions";
 
 // --- MOCK DATA ---
-const ALL_DATA = Array.from({ length: 120 }).map((_, i) => ({
-  id: `ADM-2026${String(i + 1).padStart(3, '0')}`,
-  student_name: ["Nazmul Hossain", "Sumi Akter", "Rahat Khan", "Jannat Tul", "Abir Hasan"][i % 5],
-  email: `student${i}@example.com`,
-  class_name: `Class ${6 + (i % 3)}`,
-  gender: i % 2 === 0 ? "Male" : "Female",
-  guardian_phone: `017${Math.floor(10000000 + Math.random() * 90000000)}`,
-  payment_status: i % 4 === 0 ? "unpaid" : "paid",
-  status: ["pending", "approved", "rejected"][i % 3],
-  area: ["Dhaka", "Chittagong", "Sylhet", "Rajshahi"][i % 4],
-  apply_date: "2026-01-27",
-}));
+// const ALL_DATA = Array.from({ length: 120 }).map((_, i) => ({
+//   id: `ADM-2026${String(i + 1).padStart(3, '0')}`,
+//   student_name: ["Nazmul Hossain", "Sumi Akter", "Rahat Khan", "Jannat Tul", "Abir Hasan"][i % 5],
+//   email: `student${i}@example.com`,
+//   class_name: `Class ${6 + (i % 3)}`,
+//   gender: i % 2 === 0 ? "Male" : "Female",
+//   guardian_phone: `017${Math.floor(10000000 + Math.random() * 90000000)}`,
+//   payment_status: i % 4 === 0 ? "unpaid" : "paid",
+//   status: ["pending", "approved", "rejected"][i % 3],
+//   area: ["Dhaka", "Chittagong", "Sylhet", "Rajshahi"][i % 4],
+//   apply_date: "2026-01-27",
+// }));
 
 export default function AdmissionsManager() {
+
+  //const { data, loading } = useAdmissions();
+  //const { data, loading, approve, reject } = useAdmissions();
   // Filters & Search
   const [search, setSearch] = useState("");
   const [classFilter, setClassFilter] = useState("all");
@@ -62,31 +66,31 @@ export default function AdmissionsManager() {
 
   // --- FILTER LOGIC ---
   const filteredData = useMemo(() => {
-    return ALL_DATA.filter(item => {
-      const s = search.toLowerCase();
-      const matchesSearch = item.student_name.toLowerCase().includes(s) || 
-                            item.email.toLowerCase().includes(s) ||
-                            item.guardian_phone.includes(s) || 
-                            item.id.toLowerCase().includes(s);
-      const matchesClass = classFilter === "all" || item.class_name === classFilter;
-      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-      const matchesPayment = paymentFilter === "all" || item.payment_status === paymentFilter;
-      const matchesArea = areaFilter === "all" || item.area === areaFilter;
+    // return data.filter(item => {
+    //   const s = search.toLowerCase();
+    //   const matchesSearch = item.student_name.toLowerCase().includes(s) || 
+    //                         item.email.toLowerCase().includes(s) ||
+    //                         item.guardian_phone.includes(s) || 
+    //                         item.id.toLowerCase().includes(s);
+    //   const matchesClass = classFilter === "all" || item.class_name === classFilter;
+    //   const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+    //   const matchesPayment = paymentFilter === "all" || item.payment_status === paymentFilter;
+    //   const matchesArea = areaFilter === "all" || item.area === areaFilter;
 
-      return matchesSearch && matchesClass && matchesStatus && matchesPayment && matchesArea;
-    });
+    //   return matchesSearch && matchesClass && matchesStatus && matchesPayment && matchesArea;
+    // });
   }, [search, classFilter, statusFilter, paymentFilter, areaFilter]);
 
   useEffect(() => setCurrentPage(1), [search, classFilter, statusFilter, paymentFilter, areaFilter, pageSize]);
 
-  const totalItems = filteredData.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
-  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  // const totalItems = filteredData.length;
+  // const totalPages = Math.ceil(totalItems / pageSize);
+  // const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // --- ACTION HANDLERS ---
-  const handleBulkSelect = (checked: boolean) => {
-    setSelectedIds(checked ? paginatedData.map(i => i.id) : []);
-  };
+  // const handleBulkSelect = (checked: boolean) => {
+  //   setSelectedIds(checked ? paginatedData.map(i => i.id) : []);
+  // };
 
   const processAction = () => {
     toast.success(`Successfully ${actionTarget.type}ed ${actionTarget.ids.length} application(s).`);
@@ -203,10 +207,10 @@ export default function AdmissionsManager() {
               <TableHeader className="bg-slate-50/50">
                 <TableRow>
                   <TableHead className="w-[50px]">
-                    <Checkbox 
+                    {/* <Checkbox 
                       checked={selectedIds.length === paginatedData.length && paginatedData.length > 0} 
                       onCheckedChange={(v) => handleBulkSelect(!!v)}
-                    />
+                    /> */}
                   </TableHead>
                   {visibleColumns.id && <TableHead>ID</TableHead>}
                   {visibleColumns.name && <TableHead>Student Name</TableHead>}
@@ -219,7 +223,7 @@ export default function AdmissionsManager() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedData.map((row) => (
+                {/* {paginatedData.map((row) => (
                   <TableRow key={row.id} className={selectedIds.includes(row.id) ? "bg-slate-50" : ""}>
                     <TableCell>
                       <Checkbox 
@@ -264,23 +268,23 @@ export default function AdmissionsManager() {
                           </SheetTrigger>
                           <StudentDetailSheet student={row} />
                         </Sheet>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" onClick={() => setActionTarget({ids: [row.id], type: 'approve'})}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600" onClick={() => approve(row.id)}>
                           <CheckCircle className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" onClick={() => setActionTarget({ids: [row.id], type: 'reject'})}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600" onClick={() => reject(row.id)}>
                           <XCircle className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))} */}
               </TableBody>
             </Table>
           </div>
         </div>
 
         {/* PAGINATION CONTROLS */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
+        {/* <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2">
           <p className="text-xs text-muted-foreground">Showing {paginatedData.length} of {totalItems} applicants</p>
           <div className="flex items-center gap-1">
             <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Prev</Button>
@@ -294,7 +298,7 @@ export default function AdmissionsManager() {
             )).slice(Math.max(0, currentPage - 3), currentPage + 2)}
             <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>Next</Button>
           </div>
-        </div>
+        </div> */}
 
         {/* GLOBAL ACTION MODAL */}
         <AlertDialog open={!!actionTarget.type} onOpenChange={() => setActionTarget({ids: [], type: null})}>
